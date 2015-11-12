@@ -7,6 +7,9 @@
 //
 
 #import "FISAppDelegate.h"
+#import <AFOAuth2Manager/AFOAuth2Manager.h>
+#import <AFNetworking/AFNetworking.h>
+#import "FISConstants.h"
 
 @implementation FISAppDelegate
 
@@ -40,6 +43,44 @@
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+}
+
+
+-(NSString *)firstValueForQueryItemNamed:(NSString *)name inURL:(NSURL *)url
+{
+    NSURLComponents *urlComps = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:nil];
+    NSArray *queryItems = urlComps.queryItems;
+    
+    for(NSURLQueryItem *queryItem in queryItems) {
+        if([queryItem.name isEqualToString:name]) {
+            return queryItem.value;
+        }
+    }
+    return nil;
+}
+
+
+
+-(BOOL)application:(UIApplication *)application openURL:(NSURL *)url options:(nonnull NSDictionary<NSString *,id> *)options
+{
+    NSLog(@"We were opened because someone went to %@", url);
+
+    NSString * code = [self firstValueForQueryItemNamed:@"code" inURL:url];
+    NSURL * baseURL = [NSURL URLWithString:@"https://github.com/"];
+    
+    AFOAuth2Manager * oauth2Manager = [[AFOAuth2Manager alloc] initWithBaseURL:baseURL clientID:GITHUB_CLIENT_ID secret:GITHUB_CLIENT_SECRET];
+    oauth2Manager.useHTTPBasicAuthentication = NO;
+    [oauth2Manager authenticateUsingOAuthWithURLString:@"/login/oauth/access_token" code:code redirectURI:@"" success:^(AFOAuthCredential *credential) {
+        [AFOAuthCredential storeCredential:credential withIdentifier:@"githubauth"];
+
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginComplete" object:nil];
+
+    } failure:^(NSError *error) {
+        NSLog(@"Error: %@", error);
+    }];
+    
+    
+    return YES;
 }
 
 @end

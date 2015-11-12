@@ -11,6 +11,8 @@
 #import "FISGithubRepository.h"
 #import "FISGithubAPIClient.h"
 
+#import "FISGithubLoginViewController.h"
+
 @interface FISReposTableViewController ()
 @property (strong, nonatomic) FISReposDataStore *dataStore;
 @end
@@ -24,6 +26,8 @@
     [self.dataStore getRepositoriesWithCompletion:^(BOOL success) {
         [self.tableView reloadData];
     }];
+
+    [self performSegueWithIdentifier:@"logInSegue" sender:nil];
 }
 
 #pragma mark - Table view data source
@@ -61,5 +65,19 @@
         }
     }];
 }
+
+-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender{
+
+    if ([segue.identifier isEqualToString:@"logInSegue"]) {
+
+    FISGithubLoginViewController * loginVC = segue.destinationViewController;
+    
+    }
+    
+}
+
+#pragma mark - button actions
+
+
 
 @end
